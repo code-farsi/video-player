@@ -4,59 +4,95 @@ const stop = document.getElementById("stop");
 const progress = document.getElementById("progress");
 const timestamp = document.getElementById("timestamp");
 
-// Play & pause video
-function toggleVideoStatus() {
-  if (video.paused) {
-    video.play();
-  } else {
-    video.pause();
-  }
-}
+const replay10 = document.getElementById("replay10");
+const forward10 = document.getElementById("forward10");
 
-// update play/pause icon
-function updatePlayIcon() {
-  if (video.paused) {
-    play.innerHTML =
-      '<span class="material-symbols-outlined">play_arrow</span>';
-  } else {
-    play.innerHTML = '<span class="material-symbols-outlined">pause</span>';
-  }
-}
+const videoStatus = document.getElementById("videoStatus");
 
-// Update progress & timestamp
-function updateProgress() {
-  progress.value = (video.currentTime / video.duration) * 100;
+const speed = document.getElementById("speed");
+const speedSelect = document.getElementById("speedSelect");
+const speedOption = document.querySelectorAll(".speedOption");
 
-  // Get the minutes
-  let mins = Math.floor(video.currentTime / 60);
-  if (mins < video.duration) {
-    mins = `${mins < 10 ? "0" : ""}${String(mins)}`;
-  }
+const State = {
+  REPLAY: "replay",
+  FORWARD: "forward",
+};
 
-  // Get Seconds
-  let secs = Math.floor(video.currentTime % 60);
-  if (secs < video.duration) {
-    secs = `${secs < 10 ? "0" : ""}${String(secs)}`;
-  }
+const toggleVideoStatus = () => {
+  if (video.paused) video.play();
+  else video.pause();
+};
 
-  timestamp.innerHTML = `${mins}:${secs}`;
-}
+const updatePlayIcon = () => {
+  video.playbackRate = 1;
 
-// Set video time to progress
-function setVideoProgress() {
-  video.currentTime = (+progress.value * video.duration) / 100;
-}
+  if (video.paused)
+    play.innerHTML = `<span class="material-symbols-outlined"> play_arrow </span>`;
+  else play.innerHTML = `<span class="material-symbols-outlined">pause</span>`;
+};
 
-// Stop video
-function stopVideo() {
+const stopVideo = () => {
   video.currentTime = 0;
   video.pause();
-}
+  video.playbackRate = 1;
+};
 
-// Event listeners
+const updateProgress = () => {
+  progress.value = (video.currentTime / video.duration) * 100;
+
+  // min
+  let mins = Math.floor(video.currentTime / 60);
+  if (mins < video.duration) mins = `${mins < 10 ? "0" : ""}${String(mins)}`;
+
+  // sec
+  let secs = Math.floor(video.currentTime % 60);
+  if (secs < video.duration) secs = `${secs < 10 ? "0" : ""}${String(secs)}`;
+
+  timestamp.innerHTML = `${mins}:${secs}`;
+};
+
+const setVideoProgress = () => {
+  video.currentTime = (+progress.value * video.duration) / 100;
+};
+
+const handleSpeed = (speed) => {
+  video.playbackRate = speed;
+  updateVideoState(speed);
+};
+
+const updateVideoState = (speed) => {
+  if (speed === "1") return;
+
+  videoStatus.innerText = speed + "X";
+  videoStatus.style.visibility = "visible";
+
+  setTimeout(() => {
+    videoStatus.style.visibility = "hidden";
+  }, 500);
+};
+
+const handleSkip = (state, skip) => {
+  if (state === State.FORWARD) {
+    video.currentTime += skip;
+  } else {
+    video.currentTime -= skip;
+  }
+};
+
+const displaySpeedPanel = () => {
+  const classList = speedSelect.classList;
+  if (classList.contains("d-block")) {
+    classList.remove("d-block");
+    classList.add("d-none");
+  } else {
+    classList.remove("d-none");
+    classList.add("d-block");
+  }
+};
+
 video.addEventListener("click", toggleVideoStatus);
-video.addEventListener("pause", updatePlayIcon);
 video.addEventListener("play", updatePlayIcon);
+video.addEventListener("pause", updatePlayIcon);
 video.addEventListener("timeupdate", updateProgress);
 
 play.addEventListener("click", toggleVideoStatus);
@@ -64,3 +100,16 @@ play.addEventListener("click", toggleVideoStatus);
 stop.addEventListener("click", stopVideo);
 
 progress.addEventListener("change", setVideoProgress);
+
+forward10.addEventListener("click", () => handleSkip(State.FORWARD, 10));
+replay10.addEventListener("click", () => handleSkip(State.REPLAY, 10));
+
+speed.addEventListener("click", displaySpeedPanel);
+
+for (let i = 0; i < speedOption.length; i++) {
+  speedOption[i].addEventListener("click", () =>
+    handleSpeed(
+      speedOption[i].innerText === "normal" ? "1" : speedOption[i].innerText
+    )
+  );
+}
