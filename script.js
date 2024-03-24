@@ -13,23 +13,13 @@ const speed = document.getElementById("speed");
 const speedSelect = document.getElementById("speedSelect");
 const speedOption = document.querySelectorAll(".speedOption");
 
-const State = {
-  REPLAY: "replay",
-  FORWARD: "forward",
-};
-
-const RadioButtonIcon = {
-  CHECKED: "radio_button_checked",
-  UNCHECKED: "radio_button_unchecked",
-};
-
 const toggleVideoStatus = () => {
   if (video.paused) video.play();
   else video.pause();
 };
 
 const updatePlayIcon = () => {
-  video.playbackRate = 1;
+  handleResetSpeed();
 
   if (video.paused)
     play.innerHTML = `<span class="material-symbols-outlined"> play_arrow </span>`;
@@ -37,9 +27,9 @@ const updatePlayIcon = () => {
 };
 
 const stopVideo = () => {
+  handleResetSpeed();
   video.currentTime = 0;
   video.pause();
-  video.playbackRate = 1;
 };
 
 const updateProgress = () => {
@@ -60,6 +50,22 @@ const setVideoProgress = () => {
   video.currentTime = (+progress.value * video.duration) / 100;
 };
 
+const handleSkip = (state, skip) => {
+  if (state === "forward") video.currentTime += skip;
+  else video.currentTime -= skip;
+};
+
+const displaySpeedPanel = () => {
+  const classList = speedSelect.classList;
+  if (classList.contains("d-block")) {
+    classList.remove("d-block");
+    classList.add("d-none");
+  } else {
+    classList.remove("d-none");
+    classList.add("d-block");
+  }
+};
+
 const handleSpeed = (speed) => {
   video.playbackRate = speed;
   updateVideoState(speed);
@@ -76,23 +82,20 @@ const updateVideoState = (speed) => {
   }, 500);
 };
 
-const handleSkip = (state, skip) => {
-  if (state === State.FORWARD) {
-    video.currentTime += skip;
-  } else {
-    video.currentTime -= skip;
-  }
-};
+const handleResetSpeed = () => {
+  video.playbackRate = 1;
 
-const displaySpeedPanel = () => {
-  const classList = speedSelect.classList;
-  if (classList.contains("d-block")) {
-    classList.remove("d-block");
-    classList.add("d-none");
-  } else {
-    classList.remove("d-none");
-    classList.add("d-block");
-  }
+  [...speedOption].map((el) => {
+    if (el.childNodes[1].classList.contains("selected")) {
+      el.childNodes[1].classList.remove("selected");
+      el.childNodes[1].innerText = "radio_button_unchecked";
+    }
+
+    if (el.childNodes[2].innerText === "normal") {
+      el.childNodes[1].classList.add("selected");
+      el.childNodes[1].innerText = "radio_button_checked";
+    }
+  });
 };
 
 video.addEventListener("click", toggleVideoStatus);
@@ -106,20 +109,23 @@ stop.addEventListener("click", stopVideo);
 
 progress.addEventListener("change", setVideoProgress);
 
-forward10.addEventListener("click", () => handleSkip(State.FORWARD, 10));
-replay10.addEventListener("click", () => handleSkip(State.REPLAY, 10));
+replay10.addEventListener("click", () => handleSkip("replay", 10));
+forward10.addEventListener("click", () => handleSkip("forward", 10));
 
 speed.addEventListener("click", displaySpeedPanel);
 
 for (let i = 0; i < speedOption.length; i++) {
   speedOption[i].addEventListener("click", () => {
     [...speedOption].map((el) => {
-      if (el.childNodes[1].classList.contains("selected"))
+      if (el.childNodes[1].classList.contains("selected")) {
         el.childNodes[1].classList.remove("selected");
-      el.childNodes[1].innerText = RadioButtonIcon.UNCHECKED;
+        el.childNodes[1].innerText = "radio_button_unchecked";
+      }
     });
+
     speedOption[i].childNodes[1].classList.add("selected");
-    speedOption[i].childNodes[1].innerText = RadioButtonIcon.CHECKED;
+    speedOption[i].childNodes[1].innerText = "radio_button_checked";
+
     handleSpeed(
       speedOption[i].childNodes[2].innerText === "normal"
         ? "1"
