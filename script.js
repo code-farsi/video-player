@@ -18,6 +18,11 @@ const State = {
   FORWARD: "forward",
 };
 
+const RadioButtonIcon = {
+  CHECKED: "radio_button_checked",
+  UNCHECKED: "radio_button_unchecked",
+};
+
 const toggleVideoStatus = () => {
   if (video.paused) video.play();
   else video.pause();
@@ -107,9 +112,18 @@ replay10.addEventListener("click", () => handleSkip(State.REPLAY, 10));
 speed.addEventListener("click", displaySpeedPanel);
 
 for (let i = 0; i < speedOption.length; i++) {
-  speedOption[i].addEventListener("click", () =>
+  speedOption[i].addEventListener("click", () => {
+    [...speedOption].map((el) => {
+      if (el.childNodes[1].classList.contains("selected"))
+        el.childNodes[1].classList.remove("selected");
+      el.childNodes[1].innerText = RadioButtonIcon.UNCHECKED;
+    });
+    speedOption[i].childNodes[1].classList.add("selected");
+    speedOption[i].childNodes[1].innerText = RadioButtonIcon.CHECKED;
     handleSpeed(
-      speedOption[i].innerText === "normal" ? "1" : speedOption[i].innerText
-    )
-  );
+      speedOption[i].childNodes[2].innerText === "normal"
+        ? "1"
+        : speedOption[i].childNodes[2].innerText
+    );
+  });
 }
